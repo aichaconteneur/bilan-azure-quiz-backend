@@ -1,0 +1,6 @@
+version: 2                          # version du format de config Dependabot
+updates:
+  - package-ecosystem: "maven"      # quel type de dépendances surveiller (ici : Maven/Java, car ton backend a un pom.xml)
+    directory: "/"                  # où se trouve le fichier pom.xml (à la racine du dépôt)
+    schedule:
+      interval: "weekly"            # à quelle fréquence vérifier les nouvelles versions (chaque semaine)
