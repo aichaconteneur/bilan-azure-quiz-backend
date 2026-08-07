@@ -10,12 +10,16 @@ on:
       - main
 
 permissions:
-  id-token: write
   contents: read
+  id-token: write
+
+env:
+  ACR_NAME: acrazuretechdev
+  IMAGE_NAME: quiz-backend
 
 jobs:
   build:
-    name: Build and Test Backend
+    name: Build, Test and Push Backend
     runs-on: ubuntu-latest
 
     steps:
@@ -37,7 +41,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t quiz-backend:latest .
+          docker build -t $IMAGE_NAME:latest .
 
       - name: Azure Login
         uses: azure/login@v2
@@ -50,4 +54,15 @@ jobs:
         run: az account show --output table
 
       - name: Login to Azure Container Registry
-        run: az acr login --name acrazuretechdev
+        run: |
+          az acr login --name $ACR_NAME
+
+      - name: Tag Docker image
+        run: |
+          docker tag $IMAGE_NAME:latest $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
+          docker tag $IMAGE_NAME:latest $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
+
+      - name: Push Docker images
+        run: |
+          docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
+          docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
