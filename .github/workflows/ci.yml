@@ -16,10 +16,12 @@ permissions:
 env:
   ACR_NAME: acrazuretechdev
   IMAGE_NAME: quiz-backend
+  RESOURCE_GROUP: aidialloRG
+  APP_SERVICE_NAME: app-azuretech-dev
 
 jobs:
   build:
-    name: Build, Test and Push Backend
+    name: Build, Test and Deploy Backend
     runs-on: ubuntu-latest
 
     steps:
@@ -66,3 +68,16 @@ jobs:
         run: |
           docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
           docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
+
+      - name: Configure App Service container
+        run: |
+          az webapp config container set \
+            --resource-group $RESOURCE_GROUP \
+            --name $APP_SERVICE_NAME \
+            --container-image-name $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
+
+      - name: Restart App Service
+        run: |
+          az webapp restart \
+            --resource-group $RESOURCE_GROUP \
+            --name $APP_SERVICE_NAME
