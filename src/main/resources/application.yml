@@ -30,10 +30,13 @@ management:
       # ApiKeyFilter.java) since App Service's health prober can't send the API key header.
       exposure:
         include: health
-
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
 app:
   cors:
-    allowed-origins: http://localhost:4200
+    allowed-origins: ${FRONTEND_URL:http://localhost:4200}
   security:
     # Empty by default (local dev): the filter lets every request through.
     # In prod, Azure App Service injects BACKEND_API_KEY (from Key Vault via
