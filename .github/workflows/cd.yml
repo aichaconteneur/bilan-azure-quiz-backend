@@ -1,0 +1,134 @@
+name: Backend CD
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  OWNER_TAG: aicha-conteneur
+  IMAGE_NAME: quiz-backend
+
+jobs:
+  deploy:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify Azure Login
+        run: az account show --output table
+
+      - name: Resolve Azure resources by tags
+        id: resources
+        shell: bash
+        run: |
+          ACR_NAME=$(az resource list \
+            --tag owner="$OWNER_TAG" \
+            --tag component=registry \
+            --resource-type Microsoft.ContainerRegistry/registries \
+            --query "[0].name" \
+            --output tsv)
+
+          APP_SERVICE_NAME=$(az resource list \
+            --tag owner="$OWNER_TAG" \
+            --tag component=backend \
+            --resource-type Microsoft.Web/sites \
+            --query "[0].name" \
+            --output tsv)
+
+          RESOURCE_GROUP=$(az resource list \
+            --tag owner="$OWNER_TAG" \
+            --tag component=backend \
+            --resource-type Microsoft.Web/sites \
+            --query "[0].resourceGroup" \
+            --output tsv)
+
+          if [ -z "$ACR_NAME" ]; then
+            echo "Azure Container Registry not found."
+            exit 1
+          fi
+
+          if [ -z "$APP_SERVICE_NAME" ]; then
+            echo "Backend App Service not found."
+            exit 1
+          fi
+
+          if [ -z "$RESOURCE_GROUP" ]; then
+            echo "Backend resource group not found."
+            exit 1
+          fi
+
+          echo "acr=$ACR_NAME" >> "$GITHUB_OUTPUT"
+          echo "app_service=$APP_SERVICE_NAME" >> "$GITHUB_OUTPUT"
+          echo "resource_group=$RESOURCE_GROUP" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t $IMAGE_NAME:latest .
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login \
+            --name "${{ steps.resources.outputs.acr }}"
+
+      - name: Tag Docker images
+        shell: bash
+        run: |
+          ACR="${{ steps.resources.outputs.acr }}"
+
+          docker tag \
+            "$IMAGE_NAME:latest" \
+            "$ACR.azurecr.io/$IMAGE_NAME:latest"
+
+          docker tag \
+            "$IMAGE_NAME:latest" \
+            "$ACR.azurecr.io/$IMAGE_NAME:${{ github.sha }}"
+
+      - name: Push Docker images
+        shell: bash
+        run: |
+          ACR="${{ steps.resources.outputs.acr }}"
+
+          docker push \
+            "$ACR.azurecr.io/$IMAGE_NAME:latest"
+
+          docker push \
+            "$ACR.azurecr.io/$IMAGE_NAME:${{ github.sha }}"
+
+      - name: Configure App Service container
+        shell: bash
+        run: |
+          ACR="${{ steps.resources.outputs.acr }}"
+          APP="${{ steps.resources.outputs.app_service }}"
+          RG="${{ steps.resources.outputs.resource_group }}"
+
+          az webapp config container set \
+            --resource-group "$RG" \
+            --name "$APP" \
+            --container-image-name "$ACR.azurecr.io/$IMAGE_NAME:${{ github.sha }}"
+
+      - name: Restart App Service
+        shell: bash
+        run: |
+          az webapp restart \
+            --resource-group "${{ steps.resources.outputs.resource_group }}" \
+            --name "${{ steps.resources.outputs.app_service }}"
