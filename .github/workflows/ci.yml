@@ -33,6 +33,9 @@ jobs:
 
       - name: Gitleaks Secret Scan
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
