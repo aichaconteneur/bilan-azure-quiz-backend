@@ -39,38 +39,33 @@ jobs:
         shell: bash
         run: |
           ACR_NAME=$(az resource list \
-            --tag owner="$OWNER_TAG" \
-            --tag component=registry \
-            --resource-type Microsoft.ContainerRegistry/registries \
-            --query "[0].name" \
+            --query "[?type=='Microsoft.ContainerRegistry/registries' && tags.owner=='$OWNER_TAG' && tags.component=='registry'].name | [0]" \
             --output tsv)
 
           APP_SERVICE_NAME=$(az resource list \
-            --tag owner="$OWNER_TAG" \
-            --tag component=backend \
-            --resource-type Microsoft.Web/sites \
-            --query "[0].name" \
+            --query "[?type=='Microsoft.Web/sites' && tags.owner=='$OWNER_TAG' && tags.component=='backend'].name | [0]" \
             --output tsv)
 
           RESOURCE_GROUP=$(az resource list \
-            --tag owner="$OWNER_TAG" \
-            --tag component=backend \
-            --resource-type Microsoft.Web/sites \
-            --query "[0].resourceGroup" \
+            --query "[?type=='Microsoft.Web/sites' && tags.owner=='$OWNER_TAG' && tags.component=='backend'].resourceGroup | [0]" \
             --output tsv)
 
+          echo "ACR found: $ACR_NAME"
+          echo "Backend found: $APP_SERVICE_NAME"
+          echo "Resource group found: $RESOURCE_GROUP"
+
           if [ -z "$ACR_NAME" ]; then
-            echo "Azure Container Registry not found."
+            echo "ERROR: Azure Container Registry not found using tags."
             exit 1
           fi
 
           if [ -z "$APP_SERVICE_NAME" ]; then
-            echo "Backend App Service not found."
+            echo "ERROR: Backend App Service not found using tags."
             exit 1
           fi
 
           if [ -z "$RESOURCE_GROUP" ]; then
-            echo "Backend resource group not found."
+            echo "ERROR: Backend resource group not found."
             exit 1
           fi
 
