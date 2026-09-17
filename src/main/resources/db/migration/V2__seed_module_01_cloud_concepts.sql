@@ -459,4 +459,3 @@ VALUES
     ('868e0755-0902-462f-85bd-3bc85cb04498', '4576af54-6420-43d5-90dc-e276abeea741', 'Hybrid cloud', FALSE, 2),
     ('4424f5aa-0bcd-4122-99cd-f8e0c6ca5e62', '4576af54-6420-43d5-90dc-e276abeea741', 'Community cloud', FALSE, 3),
     ('4df338b7-007c-4a7e-a6f9-97a3af70c6e8', '4576af54-6420-43d5-90dc-e276abeea741', 'Public cloud', TRUE, 4);
-
