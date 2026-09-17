@@ -23,11 +23,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Java 17
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
           cache: maven
 
       - name: Build and run tests
@@ -36,7 +36,7 @@ jobs:
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v8
         env:
-          SONAR_TOKEN: ${{ secrets.TOKEN_BACKEND_SONAR}}
+          SONAR_TOKEN: ${{ secrets.TOKEN_BACKEND_SONAR }}
         with:
           args: >
             -Dsonar.projectKey=aichaconteneur
