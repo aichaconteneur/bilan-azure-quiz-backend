@@ -1,0 +1,25 @@
+name: DAST - OWASP ZAP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  dast:
+    name: OWASP ZAP Baseline Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: OWASP ZAP Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: "https://app-azuretech-dev.azurewebsites.net"
+          fail_action: true
+          allow_issue_writing: false
+          artifact_name: zap-report
