@@ -27,17 +27,13 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Verify Java
-        run: |
-          java -version
-          echo "JAVA_HOME=$JAVA_HOME"
-
       - name: Build application
         run: mvn -B clean package -DskipTests
 
       - name: OWASP Dependency Check
         run: |
           mvn -B org.owasp:dependency-check-maven:check \
+            -DnvdApiKey="${{ secrets.NVD_KEY }}" \
             -DfailBuildOnCVSS=7
 
       - name: Upload SCA report
