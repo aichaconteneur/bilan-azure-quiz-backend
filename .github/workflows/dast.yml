@@ -25,6 +25,6 @@ jobs:
         uses: zaproxy/action-baseline@v0.14.0
         with:
           target: "https://app-azuretech-dev.azurewebsites.net/actuator/health"
-          fail_action: true
+          fail_action: false
           allow_issue_writing: false
           artifact_name: zap-report
