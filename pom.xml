@@ -23,6 +23,7 @@
     <netty.version>4.1.137.Final</netty.version>
 
     <postgresql.version>42.7.12</postgresql.version>
+	<tomcat.version>10.1.60</tomcat.version>
 
     <!-- Azure -->
     <spring-cloud-azure-dependencies.version>7.3.0</spring-cloud-azure-dependencies.version>
