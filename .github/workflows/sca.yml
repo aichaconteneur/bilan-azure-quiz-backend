@@ -1,4 +1,4 @@
-name: SCA - OWASP Dependency Check
+name: SCA
 
 on:
   push:
