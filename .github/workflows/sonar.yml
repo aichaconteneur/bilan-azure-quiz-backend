@@ -40,7 +40,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=aichaconteneur
-            -Dsonar.organization=aichaconteur
+            -Dsonar.organization=aichaconteneur
             -Dsonar.sources=src/main
             -Dsonar.tests=src/test
             -Dsonar.java.binaries=target/classes
